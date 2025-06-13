@@ -7,7 +7,7 @@ public class TestBase {
 
     public String createUser = "/users";
     public String updateUser = "/users/2";
-    public String apiKey = "reqres-free-v1";
+    public static String apiKey = "reqres-free-v1";
     public String usersEndpoint = "/users/";
 
     @BeforeAll

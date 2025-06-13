@@ -4,11 +4,13 @@ import models.lombok.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static helpers.CustomAllureListener.withCustomTemplates;
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static specs.RegressSpecUserTest.*;
+import static specs.RegressSpecListUserTest.getListUserResponseSpec;
+import static specs.RegressSpecListUserTest.getListUserSpec;
+import static specs.RegressSpecSingleUserTest.*;
 
 public class RegressTests extends TestBase {
     public int validUserId = 2;
@@ -19,15 +21,12 @@ public class RegressTests extends TestBase {
     @DisplayName("Получение списка пользователей")
     public void getListUser (){
         getResponseListUserModels response = step("Получение списка пользователей",()->
-        given()
-                .filter(withCustomTemplates())
-                .log().uri()
+        given(getListUserSpec)
+
         .when()
-                .queryParam("page", "2")
-                .get("/users")
+                .get()
         .then()
-                .statusCode(200)
-                .log().all()
+                .spec(getListUserResponseSpec)
                 .extract().as(getResponseListUserModels.class));
 
         step("Проверка ответа", () -> {
@@ -39,18 +38,12 @@ public class RegressTests extends TestBase {
     @DisplayName("Получение одиночного пользователя")
     public void getSingleUser (){
         getResponseSingleUserModels response = step("Получение одиночного пользователя",()->
-        given()
-                .filter(withCustomTemplates())
-                .log().uri()
-                .log().method()
-                .log().body()
-                .header("x-api-key", apiKey)
+        given(getSingleUserSpec)
+
         .when()
                 .get(usersEndpoint + validUserId)
         .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
+                .spec(getSingleUserResponseSpec)
                 .extract().as(getResponseSingleUserModels.class));
 
         step("Проверка ответа", () -> {
@@ -63,21 +56,15 @@ public class RegressTests extends TestBase {
     @DisplayName("Ошибка при получении одиночного пользователя")
     public void getNotSingleUser (){
         getResponseSingleUserModels response = step("Ошибка при получении одиночного пользователя",()->
-        given()
-                .filter(withCustomTemplates())
-                .log().uri()
-                .log().method()
-                .log().body()
-                .header("x-api-key", apiKey)
+        given(getSingleUserSpec)
+
         .when()
                 .get(usersEndpoint + notValidUserId)
         .then()
-                .log().status()
-                .log().body()
-                .statusCode(404)
+                .spec(getNotSingleUserResponseSpec)
                 .extract().as(getResponseSingleUserModels.class));
 
-        step("CПроверка ответа", () ->
+        step("Проверка ответа", () ->
             assertEquals(null,response.getData()));
     }
 
@@ -89,20 +76,12 @@ public class RegressTests extends TestBase {
         authData.setJob("teacher");
 
         createResponseUserModels response = step("Ответ о создании пользователя", () ->
-        given()
-                .filter(withCustomTemplates())
+        given(userSpec)
                 .body(authData)
-                .contentType(JSON)
-                .log().uri()
-                .log().body()
-                .log().headers()
-                .header("x-api-key", apiKey)
         .when()
                 .post(createUser)
         .then()
-                .log().status()
-                .log().body()
-                .statusCode(201)
+                .spec(createUserResponseSpec)
                 .extract().as(createResponseUserModels.class));
 
         step("Проверка ответа", ()-> {
@@ -120,18 +99,12 @@ public class RegressTests extends TestBase {
 
 
         updateResponseUserModels response = step("Ответ об изменении пользователя", ()->
-        given()
-                .filter(withCustomTemplates())
+        given(userSpec)
                 .body(authData)
-                .contentType(JSON)
-                .log().uri()
-                .header("x-api-key", apiKey)
         .when()
                 .put(updateUser)
         .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
+                .spec(updateResponseUserSpec)
                 .extract().as(updateResponseUserModels.class));
 
         step("Проверка ответа", ()-> {
@@ -148,18 +121,12 @@ public class RegressTests extends TestBase {
         authData.setJob("director");
 
         updateResponseUserModels response = step("Ответ об частичном изменении пользователя", ()->
-        given()
-                        .filter(withCustomTemplates())
+        given(userSpec)
                         .body(authData)
-                        .contentType(JSON)
-                        .log().uri()
-                        .header("x-api-key", apiKey)
         .when()
                         .put(updateUser)
         .then()
-                        .log().status()
-                        .log().body()
-                        .statusCode(200)
+                .spec(updateResponseUserSpec)
                         .extract().as(updateResponseUserModels.class));
 
         step("Проверка ответа", ()-> {
@@ -172,14 +139,12 @@ public class RegressTests extends TestBase {
     @DisplayName("Удаление пользователя")
     void successfulDeleteUser() {
         String response = step("Запрос удаления пользователя", () ->
-        given()
-                .header("x-api-key", apiKey)
+        given(userSpec)
+               // .header("x-api-key", apiKey)
         .when()
                 .delete(updateUser)
         .then()
-                .log().status()
-                .log().body()
-                .statusCode(204)
+                .spec(deleteUserResponseSpec)
                 .extract().asString());
 
         step("Проверка ответа", () -> {
