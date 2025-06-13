@@ -1,12 +1,14 @@
 package tests;
 
+import models.lombok.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static helpers.CustomAllureListener.withCustomTemplates;
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RegressTests extends TestBase {
     public int validUserId = 2;
@@ -16,120 +18,172 @@ public class RegressTests extends TestBase {
     @Test
     @DisplayName("Получение списка пользователей")
     public void getListUser (){
+        getResponseListUserModels response = step("Получение списка пользователей",()->
         given()
+                .filter(withCustomTemplates())
                 .log().uri()
-                .when()
+        .when()
                 .queryParam("page", "2")
                 .get("/users")
-                .then()
+        .then()
                 .statusCode(200)
-                .body("page", equalTo(2))
-                .log().all();
+                .log().all()
+                .extract().as(getResponseListUserModels.class));
 
+        step("Проверка ответа", () -> {
+            assertEquals(2, response.getPage());
+        });
     }
 
     @Test
     @DisplayName("Получение одиночного пользователя")
     public void getSingleUser (){
+        getResponseSingleUserModels response = step("Получение одиночного пользователя",()->
         given()
+                .filter(withCustomTemplates())
                 .log().uri()
                 .log().method()
                 .log().body()
                 .header("x-api-key", apiKey)
-                .when()
+        .when()
                 .get(usersEndpoint + validUserId)
-                .then()
+        .then()
                 .log().status()
                 .log().body()
                 .statusCode(200)
-                .body("data.id", is(2))
-                .body("data.email", is(expectedEmail));
+                .extract().as(getResponseSingleUserModels.class));
 
+        step("Проверка ответа", () -> {
+            assertEquals(validUserId, response.getData().getId());
+            assertEquals(expectedEmail, response.getData().getEmail());
+        });
     }
+
     @Test
     @DisplayName("Ошибка при получении одиночного пользователя")
     public void getNotSingleUser (){
+        getResponseSingleUserModels response = step("Ошибка при получении одиночного пользователя",()->
         given()
+                .filter(withCustomTemplates())
                 .log().uri()
                 .log().method()
                 .log().body()
                 .header("x-api-key", apiKey)
-                .when()
+        .when()
                 .get(usersEndpoint + notValidUserId)
-                .then()
+        .then()
                 .log().status()
                 .log().body()
                 .statusCode(404)
-                .body(equalTo("{}"));
+                .extract().as(getResponseSingleUserModels.class));
 
-
+        step("CПроверка ответа", () ->
+            assertEquals(null,response.getData()));
     }
 
     @Test
     @DisplayName("Создание пользователя")
     void successfulCreateUser() {
-        String authData = "{\"name\": \"Jon\", \"job\": \"teacher\"}";
+        createBodyUserModels authData = new createBodyUserModels();
+        authData.setName("Jon");
+        authData.setJob("teacher");
 
+        createResponseUserModels response = step("Ответ о создании пользователя", () ->
         given()
+                .filter(withCustomTemplates())
                 .body(authData)
                 .contentType(JSON)
                 .log().uri()
+                .log().body()
+                .log().headers()
                 .header("x-api-key", apiKey)
-                .when()
+        .when()
                 .post(createUser)
-                .then()
+        .then()
                 .log().status()
                 .log().body()
                 .statusCode(201)
-                .body("name", is("Jon"));
+                .extract().as(createResponseUserModels.class));
+
+        step("Проверка ответа", ()-> {
+            assertEquals("Jon", response.getName());
+            assertEquals("teacher", response.getJob());
+        });
     }
+
     @Test
     @DisplayName("Изменение пользователя, метод PUT")
     void successfulPutUpdateUser() {
-        String authData = "{\"name\": \"Joe Black\", \"job\": \"teacher\"}";
+        updateBodyUserModels authData = new updateBodyUserModels();
+        authData.setName("Joe Black");
+        authData.setJob("teacher");
 
+
+        updateResponseUserModels response = step("Ответ об изменении пользователя", ()->
         given()
+                .filter(withCustomTemplates())
                 .body(authData)
                 .contentType(JSON)
                 .log().uri()
                 .header("x-api-key", apiKey)
-                .when()
+        .when()
                 .put(updateUser)
-                .then()
+        .then()
                 .log().status()
                 .log().body()
                 .statusCode(200)
-                .body("name", is("Joe Black"));
+                .extract().as(updateResponseUserModels.class));
+
+        step("Проверка ответа", ()-> {
+            assertEquals("Joe Black", response.getName());
+            assertEquals("teacher", response.getJob());
+        });
     }
+
     @Test
     @DisplayName("Частичное изменение пользователя, метод PATCH")
     void successfulPatchUpdateUser() {
-        String authData = "{\"name\": \"Joe Black\", \"job\": \"teacher\"}";
+        updateBodyUserModels authData = new updateBodyUserModels();
+        authData.setName("Joe Black");
+        authData.setJob("director");
 
+        updateResponseUserModels response = step("Ответ об частичном изменении пользователя", ()->
         given()
-                .body(authData)
-                .contentType(JSON)
-                .log().uri()
-                .header("x-api-key", apiKey)
-                .when()
-                .patch(updateUser)
-                .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
-                .body("name", is("Joe Black"));
+                        .filter(withCustomTemplates())
+                        .body(authData)
+                        .contentType(JSON)
+                        .log().uri()
+                        .header("x-api-key", apiKey)
+        .when()
+                        .put(updateUser)
+        .then()
+                        .log().status()
+                        .log().body()
+                        .statusCode(200)
+                        .extract().as(updateResponseUserModels.class));
+
+        step("Проверка ответа", ()-> {
+            assertEquals("Joe Black", response.getName());
+            assertEquals("director", response.getJob());
+        });
     }
+
     @Test
     @DisplayName("Удаление пользователя")
     void successfulDeleteUser() {
+        String response = step("Запрос удаления пользователя", () ->
         given()
                 .header("x-api-key", apiKey)
-                .when()
+        .when()
                 .delete(updateUser)
-                .then()
+        .then()
                 .log().status()
                 .log().body()
-                .statusCode(204);
+                .statusCode(204)
+                .extract().asString());
 
+        step("Проверка ответа", () -> {
+            assertEquals("", response, "Ответ пустой");
+        });
     }
 }
