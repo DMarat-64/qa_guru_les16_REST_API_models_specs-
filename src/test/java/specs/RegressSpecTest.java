@@ -14,55 +14,35 @@ public class RegressSpecTest {
     public static RequestSpecification userSpec = with()
             .filter(withCustomTemplates())
             .contentType(JSON)
-            .log().uri()
-            .log().body()
-            .log().headers()
+            .log().all()
             .header("x-api-key", apiKey);
 
     public static ResponseSpecification createUserResponseSpec = new ResponseSpecBuilder()
             .expectStatusCode(201)
-            .log(STATUS)
+            .log(ALL)
             .log(BODY)
             .build();
 
-    public static ResponseSpecification updateResponseUserSpec = new ResponseSpecBuilder()
+    public static ResponseSpecification responseSpec200 = new ResponseSpecBuilder()
             .expectStatusCode(200)
-            .log(STATUS)
+            .log(ALL)
             .log(BODY)
             .build();
 
     public static ResponseSpecification deleteUserResponseSpec = new ResponseSpecBuilder()
             .expectStatusCode(204)
-            .log(STATUS)
+            .log(ALL)
             .log(BODY)
             .build();
 
     public static RequestSpecification getListUserSpec = with()
             .filter(withCustomTemplates())
-            .log().uri()
-            .log().body()
-            .log().headers()
-            .queryParam("page", "2");
-          //  .basePath("/api/users");
-
-    public static ResponseSpecification getListUserResponseSpec = new ResponseSpecBuilder()
-            .expectStatusCode(200)
-            .log(ALL)
-            .log(BODY)
-            .build();
+            .log().all();
 
     public static RequestSpecification getSingleUserSpec = with()
             .filter(withCustomTemplates())
-            .log().uri()
-            .log().method()
-            .log().body()
+            .log().all()
             .header("x-api-key", apiKey);
-
-    public static ResponseSpecification getSingleUserResponseSpec = new ResponseSpecBuilder()
-            .expectStatusCode(200)
-            .log(ALL)
-            .log(BODY)
-            .build();
 
     public static ResponseSpecification getNotSingleUserResponseSpec = new ResponseSpecBuilder()
             .expectStatusCode(404)

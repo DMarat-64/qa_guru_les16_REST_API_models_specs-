@@ -21,9 +21,10 @@ public class RegressTests extends TestBase {
                 given(getListUserSpec)
 
                         .when()
+                        .queryParam("page", "2")
                         .get("/users")
                         .then()
-                        .spec(getListUserResponseSpec)
+                        .spec(responseSpec200)
                         .extract().as(getResponseListUserModels.class));
 
         step("Проверка ответа", () -> {
@@ -40,7 +41,7 @@ public class RegressTests extends TestBase {
                         .when()
                         .get(usersEndpoint + validUserId)
                         .then()
-                        .spec(getSingleUserResponseSpec)
+                        .spec(responseSpec200)
                         .extract().as(getResponseSingleUserModels.class));
 
         step("Проверка ответа", () -> {
@@ -72,14 +73,14 @@ public class RegressTests extends TestBase {
         authData.setName("Jon");
         authData.setJob("teacher");
 
-        testBodyUserModels response = step("Ответ о создании пользователя", () ->
+        createResponseUserModels response = step("Ответ о создании пользователя", () ->
                 given(userSpec)
                         .body(authData)
                         .when()
                         .post(createUser)
                         .then()
                         .spec(createUserResponseSpec)
-                        .extract().as(testBodyUserModels.class));
+                        .extract().as(createResponseUserModels.class));
 
         step("Проверка ответа", () -> {
             assertEquals("Jon", response.getName());
@@ -95,14 +96,14 @@ public class RegressTests extends TestBase {
         authData.setJob("teacher");
 
 
-        testBodyUserModels response = step("Ответ об изменении пользователя", () ->
+        updateResponseUserModels response = step("Ответ об изменении пользователя", () ->
                 given(userSpec)
                         .body(authData)
                         .when()
                         .put(updateUser)
                         .then()
-                        .spec(updateResponseUserSpec)
-                        .extract().as(testBodyUserModels.class));
+                        .spec(responseSpec200)
+                        .extract().as(updateResponseUserModels.class));
 
         step("Проверка ответа", () -> {
             assertEquals("Joe Black", response.getName());
@@ -117,14 +118,14 @@ public class RegressTests extends TestBase {
         authData.setName("Joe Black");
         authData.setJob("director");
 
-        testBodyUserModels response = step("Ответ об частичном изменении пользователя", () ->
+        updateResponseUserModels response = step("Ответ об частичном изменении пользователя", () ->
                 given(userSpec)
                         .body(authData)
                         .when()
                         .put(updateUser)
                         .then()
-                        .spec(updateResponseUserSpec)
-                        .extract().as(testBodyUserModels.class));
+                        .spec(responseSpec200)
+                        .extract().as(updateResponseUserModels.class));
 
         step("Проверка ответа", () -> {
             assertEquals("Joe Black", response.getName());
