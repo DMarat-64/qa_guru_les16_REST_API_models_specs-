@@ -7,10 +7,7 @@ import org.junit.jupiter.api.Test;
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static specs.RegressSpecUserTest.*;
-import static specs.RegressSpecListUserTest.getListUserResponseSpec;
-import static specs.RegressSpecListUserTest.getListUserSpec;
-import static specs.RegressSpecSingleUserTest.*;
+import static specs.RegressSpecTest.*;
 
 public class RegressTests extends TestBase {
     public int validUserId = 2;
@@ -19,15 +16,15 @@ public class RegressTests extends TestBase {
 
     @Test
     @DisplayName("Получение списка пользователей")
-    public void getListUser (){
-        getResponseListUserModels response = step("Получение списка пользователей",()->
-        given(getListUserSpec)
+    public void getListUser() {
+        getResponseListUserModels response = step("Получение списка пользователей", () ->
+                given(getListUserSpec)
 
-        .when()
-                .get()
-        .then()
-                .spec(getListUserResponseSpec)
-                .extract().as(getResponseListUserModels.class));
+                        .when()
+                        .get("/users")
+                        .then()
+                        .spec(getListUserResponseSpec)
+                        .extract().as(getResponseListUserModels.class));
 
         step("Проверка ответа", () -> {
             assertEquals(2, response.getPage());
@@ -36,15 +33,15 @@ public class RegressTests extends TestBase {
 
     @Test
     @DisplayName("Получение одиночного пользователя")
-    public void getSingleUser (){
-        getResponseSingleUserModels response = step("Получение одиночного пользователя",()->
-        given(getSingleUserSpec)
+    public void getSingleUser() {
+        getResponseSingleUserModels response = step("Получение одиночного пользователя", () ->
+                given(getSingleUserSpec)
 
-        .when()
-                .get(usersEndpoint + validUserId)
-        .then()
-                .spec(getSingleUserResponseSpec)
-                .extract().as(getResponseSingleUserModels.class));
+                        .when()
+                        .get(usersEndpoint + validUserId)
+                        .then()
+                        .spec(getSingleUserResponseSpec)
+                        .extract().as(getResponseSingleUserModels.class));
 
         step("Проверка ответа", () -> {
             assertEquals(validUserId, response.getData().getId());
@@ -54,37 +51,37 @@ public class RegressTests extends TestBase {
 
     @Test
     @DisplayName("Ошибка при получении одиночного пользователя")
-    public void getNotSingleUser (){
-        getResponseSingleUserModels response = step("Ошибка при получении одиночного пользователя",()->
-        given(getSingleUserSpec)
+    public void getNotSingleUser() {
+        getResponseSingleUserModels response = step("Ошибка при получении одиночного пользователя", () ->
+                given(getSingleUserSpec)
 
-        .when()
-                .get(usersEndpoint + notValidUserId)
-        .then()
-                .spec(getNotSingleUserResponseSpec)
-                .extract().as(getResponseSingleUserModels.class));
+                        .when()
+                        .get(usersEndpoint + notValidUserId)
+                        .then()
+                        .spec(getNotSingleUserResponseSpec)
+                        .extract().as(getResponseSingleUserModels.class));
 
         step("Проверка ответа", () ->
-            assertEquals(null,response.getData()));
+                assertEquals(null, response.getData()));
     }
 
     @Test
     @DisplayName("Создание пользователя")
     void successfulCreateUser() {
-        createBodyUserModels authData = new createBodyUserModels();
+        testBodyUserModels authData = new testBodyUserModels();
         authData.setName("Jon");
         authData.setJob("teacher");
 
-        createResponseUserModels response = step("Ответ о создании пользователя", () ->
-        given(userSpec)
-                .body(authData)
-        .when()
-                .post(createUser)
-        .then()
-                .spec(createUserResponseSpec)
-                .extract().as(createResponseUserModels.class));
+        testBodyUserModels response = step("Ответ о создании пользователя", () ->
+                given(userSpec)
+                        .body(authData)
+                        .when()
+                        .post(createUser)
+                        .then()
+                        .spec(createUserResponseSpec)
+                        .extract().as(testBodyUserModels.class));
 
-        step("Проверка ответа", ()-> {
+        step("Проверка ответа", () -> {
             assertEquals("Jon", response.getName());
             assertEquals("teacher", response.getJob());
         });
@@ -93,21 +90,21 @@ public class RegressTests extends TestBase {
     @Test
     @DisplayName("Изменение пользователя, метод PUT")
     void successfulPutUpdateUser() {
-        updateBodyUserModels authData = new updateBodyUserModels();
+        testBodyUserModels authData = new testBodyUserModels();
         authData.setName("Joe Black");
         authData.setJob("teacher");
 
 
-        updateResponseUserModels response = step("Ответ об изменении пользователя", ()->
-        given(userSpec)
-                .body(authData)
-        .when()
-                .put(updateUser)
-        .then()
-                .spec(updateResponseUserSpec)
-                .extract().as(updateResponseUserModels.class));
+        testBodyUserModels response = step("Ответ об изменении пользователя", () ->
+                given(userSpec)
+                        .body(authData)
+                        .when()
+                        .put(updateUser)
+                        .then()
+                        .spec(updateResponseUserSpec)
+                        .extract().as(testBodyUserModels.class));
 
-        step("Проверка ответа", ()-> {
+        step("Проверка ответа", () -> {
             assertEquals("Joe Black", response.getName());
             assertEquals("teacher", response.getJob());
         });
@@ -116,20 +113,20 @@ public class RegressTests extends TestBase {
     @Test
     @DisplayName("Частичное изменение пользователя, метод PATCH")
     void successfulPatchUpdateUser() {
-        updateBodyUserModels authData = new updateBodyUserModels();
+        testBodyUserModels authData = new testBodyUserModels();
         authData.setName("Joe Black");
         authData.setJob("director");
 
-        updateResponseUserModels response = step("Ответ об частичном изменении пользователя", ()->
-        given(userSpec)
+        testBodyUserModels response = step("Ответ об частичном изменении пользователя", () ->
+                given(userSpec)
                         .body(authData)
-        .when()
+                        .when()
                         .put(updateUser)
-        .then()
-                .spec(updateResponseUserSpec)
-                        .extract().as(updateResponseUserModels.class));
+                        .then()
+                        .spec(updateResponseUserSpec)
+                        .extract().as(testBodyUserModels.class));
 
-        step("Проверка ответа", ()-> {
+        step("Проверка ответа", () -> {
             assertEquals("Joe Black", response.getName());
             assertEquals("director", response.getJob());
         });
@@ -139,13 +136,12 @@ public class RegressTests extends TestBase {
     @DisplayName("Удаление пользователя")
     void successfulDeleteUser() {
         String response = step("Запрос удаления пользователя", () ->
-        given(userSpec)
-               // .header("x-api-key", apiKey)
-        .when()
-                .delete(updateUser)
-        .then()
-                .spec(deleteUserResponseSpec)
-                .extract().asString());
+                given(userSpec)
+                        .when()
+                        .delete(updateUser)
+                        .then()
+                        .spec(deleteUserResponseSpec)
+                        .extract().asString());
 
         step("Проверка ответа", () -> {
             assertEquals("", response, "Ответ пустой");
